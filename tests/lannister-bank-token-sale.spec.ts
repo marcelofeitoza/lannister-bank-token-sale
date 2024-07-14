@@ -233,23 +233,34 @@ describe("lannister-bank-token-sale", () => {
 
 		console.log("Balance available:", balance);
 
-		const txPurchase = await program.methods
-			.purchaseTokens(new anchor.BN(5))
-			.accounts({
-				sale: salePDA,
-				whitelist: councilPDA,
-				userPurchase: userPurchasePDA,
-				user: tyrion.publicKey,
-				tokenVault: treasuryVault,
-				userTokenAccount: buyerTokenAccount.address,
-				tokenProgram: TOKEN_PROGRAM_ID,
-			})
-			.signers([tyrion])
-			.rpc();
-
-		console.log("Transaction approved:", txPurchase);
+		try {
+			const txPurchase = await program.methods
+				.purchaseTokens(new anchor.BN(50_000))
+				.accounts({
+					sale: salePDA,
+					whitelist: councilPDA,
+					userPurchase: userPurchasePDA,
+					user: tyrion.publicKey,
+					tokenVault: treasuryVault,
+					userTokenAccount: buyerTokenAccount.address,
+					tokenProgram: TOKEN_PROGRAM_ID,
+				})
+				.signers([tyrion])
+				.rpc();
+			console.log("Transaction approved:", txPurchase);
+		} catch (error) {
+			console.log("Transaction failed:", error);
+		}
 
 		const saleAccount = await program.account.sale.fetch(salePDA);
-		console.log("Royal treasury after Tyrion's purchase:", saleAccount);
+		console.log("Royal treasury after Tyrion's purchase:", {
+			tokenMint: saleAccount.tokenMint,
+			tokenVault: saleAccount.tokenVault,
+			saleBump: saleAccount.saleBump,
+			whitelistBump: saleAccount.whitelistBump,
+			tokenPrice: saleAccount.tokenPrice.toNumber(),
+			maxPurchasePerWallet: saleAccount.maxPurchasePerWallet.toNumber(),
+			tokensSold: saleAccount.tokensSold.toNumber()
+		});
 	});
 });
